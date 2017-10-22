@@ -1,2 +1,2 @@
 # Agenda
-a simple agenda in java
+a simple agenda in golang
