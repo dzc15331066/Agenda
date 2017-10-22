@@ -19,7 +19,7 @@ agenda register -uUserName --password pass --email=a@xxx.com --phone=123456
 agenda login -uUserName --password pass
 ```
 
-###用户登出
+### 用户登出
 
 ```
 agenda logout
