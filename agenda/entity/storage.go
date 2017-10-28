@@ -83,7 +83,7 @@ func (s *storage) Sync() {
 
 // read current user from file "curUser.txt".
 func (s *storage) readCurUser() *User {
-	return &User{}
+	return nil
 }
 
 // save current user to file "curUser.txt".
