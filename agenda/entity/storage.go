@@ -4,7 +4,17 @@ import (
 	"sync"
 )
 
+const (
+	curUserFile     = "curUser.txt"
+	userListFile    = "userList.json"
+	meetingListFile = "meetingList.json"
+)
+
 type storage struct {
+	UserList    []User
+	MeetingList []Meeting
+	Dirty       bool
+	CurUser     *User
 }
 
 var (
@@ -16,11 +26,14 @@ var (
 func Storage() *storage {
 	once.Do(func() {
 		s = &storage{}
+		s.readFromFile()
+		s.readCurUser()
 	})
 	return s
 
 }
 
+// read
 func (s *storage) readFromFile() bool {
 	return true
 }
@@ -56,8 +69,29 @@ func (s *storage) QueryMeeting(filter func(Meeting) bool) []Meeting {
 	return nil
 }
 
-// sync with the file
+// delete meetings
+// return the number of deleted meetings.
+func (s *storage) DeleteMeeting(filter func(Meeting) bool) int {
+	return 0
+}
 
+// sync with the files.
 func (s *storage) Sync() {
+	s.writeToFile()
+	s.saveCurUser()
+}
 
+// read current user from file "curUser.txt".
+func (s *storage) readCurUser() *User {
+	return &User{}
+}
+
+// save current user to file "curUser.txt".
+func (s *storage) saveCurUser() bool {
+	if s.CurUser == nil {
+
+	} else {
+
+	}
+	return true
 }
