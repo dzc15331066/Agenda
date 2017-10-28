@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"../entity/"
 	"sync"
 )
 
@@ -18,5 +19,17 @@ func Storage() *storage {
 		s = &storage{}
 	})
 	return s
+
+}
+
+func (s *storage) readFromFile() bool {
+	return true
+}
+
+func (s *storage) writeToFile() bool {
+	return true
+}
+
+func (s *storage) AddUser(u User) {
 
 }
