@@ -15,12 +15,12 @@
 package cmd
 
 import (
+	"Agenda/agenda/entity"
 	"fmt"
-	"os"
-
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
 )
 
 var cfgFile string
@@ -49,7 +49,7 @@ func Execute() {
 	}
 }
 
-func init() { 
+func init() {
 	cobra.OnInitialize(initConfig)
 
 	// Here you will define your flags and configuration settings.
