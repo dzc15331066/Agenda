@@ -10,13 +10,19 @@ type Meeting struct {
 	Title         string
 }
 
-func NewMeeting(sponsor string, participator string, start time.Time, end time.Time, title string) *Meeting {
+func NewMeeting(sponsor string, participator []string, start time.Time, end time.Time, title string) Meeting {
 	participators := make([]string, 1)
-	participators = append(participators, participator)
-	return &Meeting{sponsor, participators, start, end, title}
+	for _, p := range participator {
+		participators = append(participators, p)
+	}
+	return Meeting{sponsor, participators, start, end, title}
 }
 
 func (m *Meeting) IsParticipator(username string) bool {
-	//add your codes here
-	return true
+	for _, par := range m.Participators {
+		if par == username {
+			return true
+		}
+	}
+	return false
 }
