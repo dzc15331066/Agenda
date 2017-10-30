@@ -23,6 +23,7 @@ import (
 	"os"
 )
 
+var as = entity.NewAgendaService()
 var cfgFile string
 
 // RootCmd represents the base command when called without any subcommands
@@ -47,6 +48,7 @@ func Execute() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	as.Quit()
 }
 
 func init() {

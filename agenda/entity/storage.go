@@ -21,7 +21,7 @@ type storage struct {
 	UserList    []User
 	MeetingList []Meeting
 	Dirty       bool
-	CurUser     *User
+	CurUser     User
 }
 
 var (
@@ -36,7 +36,7 @@ func Storage() *storage {
 		s = &storage{}
 		s.UserList = make([]User, 0)
 		s.MeetingList = make([]Meeting, 0)
-		s.CurUser = &User{}
+		s.CurUser = User{}
 		s.readFromFile()
 	})
 	return s
@@ -47,20 +47,16 @@ func Storage() *storage {
 func (s *storage) readFromFile() bool {
 	readFromFile(&s.UserList, userFilename)
 	readFromFile(&s.MeetingList, meetingFilename)
-	readFromFile(s.CurUser, curUserFilename)
+	readFromFile(&s.CurUser, curUserFilename)
 	return true
 }
 
 // write.
 func (s *storage) writeToFile() bool {
-	if len(s.MeetingList) > 0 {
-		writeToFile(s.UserList, userFilename)
-	}
-	if len(s.UserList) > 0 {
-		writeToFile(s.MeetingList, meetingFilename)
-	}
-	if s.CurUser != nil {
-		writeToFile(*s.CurUser, curUserFilename)
+	writeToFile(s.UserList, userFilename)
+	writeToFile(s.MeetingList, meetingFilename)
+	if s.CurUser != (User{}) {
+		writeToFile(s.CurUser, curUserFilename)
 	}
 	return true
 }
@@ -72,7 +68,7 @@ func (s *storage) AddUser(user User) {
 
 // query users and return a query list.
 func (s *storage) QueryUser(filter func(User) bool) []User {
-	var userList = make([]User, 1)
+	var userList = make([]User, 0)
 	for _, user := range s.UserList {
 		if filter(user) {
 			userList = append(userList, user)

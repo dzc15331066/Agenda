@@ -1,6 +1,8 @@
 package entity
 
-import "time"
+import (
+	"time"
+)
 
 type AgendaService struct {
 	AgendaStorage *storage
@@ -20,7 +22,7 @@ func (as *AgendaService) UserLogin(username string, password string) bool {
 
 	if len(res) > 0 {
 		// set current user
-		as.AgendaStorage.CurUser = &res[0]
+		as.AgendaStorage.CurUser = res[0]
 	}
 	return true
 }
@@ -34,9 +36,10 @@ func (as *AgendaService) UserLogout() bool {
 
 // agenda register
 // regist a user.
-func (as *AgendaService) UserRegister(username string, password string, email string, phone string) bool {
+func (as *AgendaService) UserRegister(username string, password string, email string, phone string) {
+	log.Infoln("Register...:")
 	if username == "" || password == "" || email == "" || phone == "" {
-		return false
+		log.Fatalln("invalid argument")
 	}
 	user := NewUser(username, password, email, phone)
 	userList := as.AgendaStorage.QueryUser(func(user User) bool {
@@ -44,11 +47,10 @@ func (as *AgendaService) UserRegister(username string, password string, email st
 	})
 
 	if len(userList) > 0 {
-		return false
+		log.Fatalln("user has been registered")
 	}
 
 	as.AgendaStorage.AddUser(*user)
-	return true
 }
 
 // agenda delUser
@@ -218,4 +220,10 @@ func (as *AgendaService) IsParticipator(username string, title string) bool {
 		return false
 	})
 	return len(res) > 0
+}
+
+// quit
+
+func (as *AgendaService) Quit() {
+	as.AgendaStorage.Sync()
 }

@@ -1,3 +1,6 @@
-#tmp file:
+# tmp file:
 *~
 *#
+# data file:
+agenda/*.txt
+agenda/*.json
