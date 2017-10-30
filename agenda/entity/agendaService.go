@@ -15,14 +15,12 @@ func NewAgendaService() *AgendaService {
 // check if the username match password.
 func (as *AgendaService) UserLogin(username string, password string) bool {
 	res := as.AgendaStorage.QueryUser(func(user User) bool {
-		if username == user.Name {
-			return true
-		}
-		return false
+		return username == user.Name && password == user.Password
 	})
 
 	if len(res) > 0 {
-		as.AgendaStorage.saveCurUser(res[0])
+		// set current user
+		as.AgendaStorage.CurUser = &res[0]
 	}
 	return true
 }
@@ -30,27 +28,26 @@ func (as *AgendaService) UserLogin(username string, password string) bool {
 // agenda logout
 // user logout.
 func (as *AgendaService) UserLogout() bool {
-
+	eraseCurUser()
 	return true
 }
 
 // agenda register
 // regist a user.
 func (as *AgendaService) UserRegister(username string, password string, email string, phone string) bool {
-
+	if username == "" || password == "" || email == "" || phone == "" {
+		return false
+	}
 	user := NewUser(username, password, email, phone)
 	userList := as.AgendaStorage.QueryUser(func(user User) bool {
-		if user.Name == username {
-			return true
-		}
-		return false
+		return user.Name == username
 	})
 
 	if len(userList) > 0 {
 		return false
 	}
 
-	as.AgendaStorage.AddUser(user)
+	as.AgendaStorage.AddUser(*user)
 	return true
 }
 
@@ -59,10 +56,7 @@ func (as *AgendaService) UserRegister(username string, password string, email st
 func (as *AgendaService) DeleteUser(username string, password string) bool {
 	var ret int
 	ret = as.AgendaStorage.DeleteUser(func(user User) bool {
-		if user.Name == username {
-			return true
-		}
-		return false
+		return user.Name == username && user.Password == password
 	})
 	return ret > 0
 }
@@ -153,14 +147,11 @@ func (as *AgendaService) QueryMeeting(username string, start time.Time, end time
 }
 
 // agenda dm
-// delete a meeting by sponsor name and title.
-func (as *AgendaService) DeleteMeeting(sponsor string, title string) bool {
+// delete a meeting by sponsor name(the current user's name) and title.
+func (as *AgendaService) DeleteMeeting(title string) bool {
 
 	num := as.AgendaStorage.DeleteMeeting(func(meeting Meeting) bool {
-		if meeting.Sponsor == sponsor && meeting.Title == title {
-			return true
-		}
-		return false
+		return meeting.Sponsor == as.AgendaStorage.CurUser.Name && meeting.Title == title
 	})
 
 	return num > 0
@@ -168,12 +159,10 @@ func (as *AgendaService) DeleteMeeting(sponsor string, title string) bool {
 
 // agenda clear
 // delete all meetings by sponsor.
-func (as *AgendaService) DeleteAllMeetings(sponsor string) bool {
+func (as *AgendaService) DeleteAllMeetings() bool {
 	res := as.AgendaStorage.DeleteMeeting(func(meeting Meeting) bool {
-		if meeting.Sponsor == sponsor {
-			return true
-		}
-		return false
+		return meeting.Sponsor == as.AgendaStorage.CurUser.Name
+
 	})
 	return res > 0
 }
@@ -184,12 +173,7 @@ func (as *AgendaService) ExitFromMeeting(username string, title string) bool {
 
 	res := as.AgendaStorage.ExitFromMeetings(func(meeting Meeting) int {
 		if meeting.Title == title {
-			for index, par := range meeting.Participators {
-				if par == username {
-					return index
-				}
-			}
-			return -1
+			return meeting.ParticipatorIndex(username)
 		}
 		return -1
 	})
@@ -197,16 +181,17 @@ func (as *AgendaService) ExitFromMeeting(username string, title string) bool {
 }
 
 // agenda addPart
-// add a participator to a meeting
+// add a participator to a meeting sponsored by current user.
 func (as *AgendaService) AddParticipator(username string, title string) bool {
+	users := as.AgendaStorage.QueryUser(func(user User) bool {
+		return username == user.Name
+	})
+	if len(users) > 0 {
+		return false
+	}
 	res := as.AgendaStorage.AddParticipator(username, func(m Meeting) bool {
-		if m.Title == title {
-			for _, par := range m.Participators {
-				if par == username {
-					return false
-				}
-			}
-			return true
+		if m.Title == title && m.Sponsor == as.AgendaStorage.CurUser.Name {
+			return m.ParticipatorIndex(username) == -1
 		}
 		return false
 	})
@@ -214,16 +199,11 @@ func (as *AgendaService) AddParticipator(username string, title string) bool {
 }
 
 // agenda delPart
-// delete a participator to a meeting
+// delete a participator to a meeting sponsored by current user.
 func (as *AgendaService) DelParticipator(username string, title string) bool {
 	res := as.AgendaStorage.DelParticipator(username, func(m Meeting) int {
-		if m.Title == title {
-			for index, par := range m.Participators {
-				if par == username {
-					return index
-				}
-			}
-			return -1
+		if m.Title == title && m.Sponsor == as.AgendaStorage.CurUser.Name {
+			return m.ParticipatorIndex(username)
 		}
 		return -1
 	})
@@ -233,7 +213,7 @@ func (as *AgendaService) DelParticipator(username string, title string) bool {
 func (as *AgendaService) IsParticipator(username string, title string) bool {
 	res := as.AgendaStorage.QueryMeeting(func(m Meeting) bool {
 		if m.Title == title {
-			return m.IsParticipator(username)
+			return m.ParticipatorIndex(username) >= 0
 		}
 		return false
 	})

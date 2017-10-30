@@ -84,13 +84,16 @@ func (s *storage) QueryUser(filter func(User) bool) []User {
 // delete users from the user list
 // return the number of deleted users.
 func (s *storage) DeleteUser(filter func(User) bool) int {
-	var ret int = 0
-	for index, usr := range s.UserList {
+	ret := 0
+	users := make([]User, 0)
+	for _, usr := range s.UserList {
 		if filter(usr) {
-			s.UserList = append(s.UserList[:index], s.UserList[index+1:]...)
 			ret++
+		} else {
+			users = append(users, usr)
 		}
 	}
+	s.UserList = users
 	return ret
 }
 
@@ -108,7 +111,7 @@ func (s *storage) addMeeting(m Meeting) {
 // query meetings
 // return a query list.
 func (s *storage) QueryMeeting(filter func(Meeting) bool) []Meeting {
-	meetings := make([]Meeting, 1)
+	meetings := make([]Meeting, 0)
 	for _, m := range s.MeetingList {
 		if filter(m) {
 			meetings = append(meetings, m)
@@ -120,14 +123,17 @@ func (s *storage) QueryMeeting(filter func(Meeting) bool) []Meeting {
 // delete meetings
 // return the number of deleted meetings.
 func (s *storage) DeleteMeeting(filter func(Meeting) bool) int {
-
+	meetings := make([]Meeting, 0)
 	var count int
-	for index, m := range s.MeetingList {
+	for _, m := range s.MeetingList {
 		if filter(m) {
-			s.MeetingList = append(s.MeetingList[:index], s.MeetingList[index+1:]...)
 			count++
+		} else {
+			//not need to be deleted, so add to the meetings
+			meetings = append(meetings, m)
 		}
 	}
+	s.MeetingList = meetings
 
 	return count
 }
@@ -159,8 +165,7 @@ func (s *storage) AddParticipator(username string, filter func(Meeting) bool) bo
 }
 
 // delete a participator form some meeting by meeting's title
-// if successful return true, else retuen false
-
+// if successful return true, else return false.
 func (s *storage) DelParticipator(username string, filter func(Meeting) int) bool {
 	for _, m := range s.MeetingList {
 		if index := filter(m); index >= 0 {
@@ -206,9 +211,6 @@ func readFromFile(datalist interface{}, filename string) {
 			log.Fatal(err)
 		}
 	}
-	if err := file.Close(); err != nil {
-		log.Fatal(err)
-	}
 
 }
 
@@ -224,4 +226,17 @@ func writeToFile(datalist interface{}, filename string) {
 		log.Fatal(err)
 	}
 
+}
+
+// erase current user file while logout.
+func eraseCurUser() {
+	file, err := os.OpenFile(curUserFilename, os.O_RDWR|os.O_CREATE, 0755)
+	defer file.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = file.Truncate(0)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
