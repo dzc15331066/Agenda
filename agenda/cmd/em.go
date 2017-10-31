@@ -40,9 +40,9 @@ to quickly create a Cobra application.`,
 			username := as.AgendaStorage.CurUser.Name
 			res := as.ExitFromMeeting(username, title)
 			if res {
-				fmt.Printf("[success]:exit from the meeting %s successfully!", title)
+				fmt.Printf("[success]:exit from the meeting %s successfully!\n", title)
 			} else {
-				fmt.Printf("[error]: never partcicipate in the meeting %s", title)
+				fmt.Printf("[error]: never partcicipate in the meeting %s\n", title)
 			}
 		}
 	},
@@ -52,7 +52,6 @@ func init() {
 	RootCmd.AddCommand(emCmd)
 
 	// Here you will define your flags and configuration settings.
-
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// emCmd.PersistentFlags().String("foo", "", "A help for foo")
@@ -60,5 +59,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// emCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	cmCmd.Flags().StringP("title", "t", "", "use --title or -t [meeting's title]")
+	emCmd.Flags().StringP("title", "t", "", "use --title or -t [meeting's title]")
 }
