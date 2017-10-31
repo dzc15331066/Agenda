@@ -181,7 +181,7 @@ func (as *AgendaService) DeleteMeeting(title string) bool {
 	})
 
 	if num > 0 {
-		as.AgendaStorage.writeToFile()
+		as.AgendaStorage.Sync()
 	}
 	return num > 0
 }
@@ -193,6 +193,9 @@ func (as *AgendaService) DeleteAllMeetings() bool {
 		return meeting.Sponsor == as.AgendaStorage.CurUser.Name
 
 	})
+	if res > 0 {
+		as.AgendaStorage.Sync()
+	}
 	return res > 0
 }
 
@@ -206,6 +209,9 @@ func (as *AgendaService) ExitFromMeeting(username string, title string) bool {
 		}
 		return -1
 	})
+	if res {
+		as.AgendaStorage.Sync()
+	}
 	return res
 }
 
@@ -241,6 +247,9 @@ func (as *AgendaService) DelParticipator(username string, title string) bool {
 		}
 		return -1
 	})
+	if res {
+		as.AgendaStorage.Sync()
+	}
 	return res
 }
 

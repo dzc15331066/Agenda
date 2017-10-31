@@ -36,7 +36,7 @@ to quickly create a Cobra application.`,
 		username, _ := cmd.Flags().GetString("user")
 		password, _ := cmd.Flags().GetString("password")
 		if as.AgendaStorage.CurUser == (entity.User{}) {
-			fmt.Println("[error]: not registered yet!")
+			fmt.Println("[error]: not login yet!")
 		} else {
 			res := as.DeleteUser(username, password)
 			if !res {

@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"Agenda/agenda/entity"
 	"fmt"
 	"time"
 
@@ -39,14 +40,18 @@ to quickly create a Cobra application.`,
 		end, _ := cmd.Flags().GetString("end")
 		sponsor := as.AgendaStorage.CurUser.Name
 		// time parse
-		const shortForm = "2006-Jan-02"
-		s, _ := time.Parse(shortForm, start)
-		e, _ := time.Parse(shortForm, end)
-		res := as.AddMeeting(sponsor, title, s, e, participator)
-		if !res {
-			fmt.Println("[error]: Adding meeting fails!check out and try again")
+		if as.AgendaStorage.CurUser == (entity.User{}) {
+			fmt.Println("[error]: not login yet!")
 		} else {
-			fmt.Println("[success]: Adding meeting successfully!")
+			const shortForm = "2006-Jan-02"
+			s, _ := time.Parse(shortForm, start)
+			e, _ := time.Parse(shortForm, end)
+			res := as.AddMeeting(sponsor, title, s, e, participator)
+			if !res {
+				fmt.Println("[error]: Adding meeting fails!check out and try again")
+			} else {
+				fmt.Println("[success]: Adding meeting successfully!")
+			}
 		}
 	},
 }

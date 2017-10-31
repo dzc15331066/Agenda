@@ -143,9 +143,15 @@ func (s *storage) DeleteMeeting(filter func(Meeting) bool) int {
 // return true if exit successfully,false if failing
 func (s *storage) ExitFromMeetings(filter func(Meeting) int) bool {
 
-	for _, m := range s.MeetingList {
+	for i, m := range s.MeetingList {
 		if index := filter(m); index >= 0 {
 			m.Participators = append(m.Participators[:index], m.Participators[index+1:]...)
+			//如果退出后参与者为零
+			if len(m.Participators) == 0 {
+				s.MeetingList = append(s.MeetingList[:i], s.MeetingList[i+1:]...)
+			} else {
+				s.MeetingList[i].Participators = m.Participators
+			}
 			return true
 		}
 	}
@@ -172,9 +178,10 @@ func (s *storage) AddParticipator(username string, filter func(Meeting) bool) bo
 // delete a participator form some meeting by meeting's title
 // if successful return true, else return false.
 func (s *storage) DelParticipator(username string, filter func(Meeting) int) bool {
-	for _, m := range s.MeetingList {
+	for i, m := range s.MeetingList {
 		if index := filter(m); index >= 0 {
 			m.Participators = append(m.Participators[:index], m.Participators[index+1:]...)
+			s.MeetingList[i].Participators = m.Participators
 			return true
 		}
 	}
