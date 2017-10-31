@@ -13,7 +13,7 @@ type Meeting struct {
 }
 
 func NewMeeting(sponsor string, participator []string, start time.Time, end time.Time, title string) Meeting {
-	participators := make([]string, 1)
+	participators := make([]string, 0)
 	for _, p := range participator {
 		participators = append(participators, p)
 	}

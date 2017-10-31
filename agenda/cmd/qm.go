@@ -17,6 +17,7 @@ package cmd
 import (
 	"Agenda/agenda/entity"
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -35,6 +36,21 @@ to quickly create a Cobra application.`,
 		fmt.Println("qm called")
 		if as.AgendaStorage.CurUser == (entity.User{}) {
 			fmt.Println("[error]: not login yet!")
+		} else {
+			sponsor := as.AgendaStorage.CurUser.Name
+			start, _ := cmd.Flags().GetString("start")
+			end, _ := cmd.Flags().GetString("end")
+			const shortForm = "2006-Jan-02"
+			s, _ := time.Parse(shortForm, start)
+			e, _ := time.Parse(shortForm, end)
+			meetings := as.QueryMeeting(sponsor, s, e)
+			if len(meetings) > 0 {
+				for index, m := range meetings {
+					fmt.Println(index+1, m.Title, m.Sponsor, m.Participators, m.Start, m.End)
+				}
+			} else {
+				fmt.Println("[error]: you've never participated a meeting")
+			}
 		}
 	},
 }
@@ -51,4 +67,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// qmCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	qmCmd.Flags().StringP("start", "s", "", "use --start or -s [year-month-day]")
+	qmCmd.Flags().StringP("end", "e", "", "use --end or -e [year-month-day]")
 }

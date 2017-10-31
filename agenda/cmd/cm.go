@@ -69,7 +69,7 @@ func init() {
 	// is called directly, e.g.:
 	// cmCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	cmCmd.Flags().StringP("title", "t", "", "use -title [meeting's title] or -t [meeting's title]")
-	cmCmd.Flags().StringSliceP("part", "p", make([]string, 1), "use -part [participators] or -p [participators]")
-	cmCmd.Flags().StringP("start", "s", "2017-10-25", "use -start or -s [year-month-day]")
-	cmCmd.Flags().StringP("end", "e", "2017-10-25", "use -end or -e [year-month-day]")
+	cmCmd.Flags().StringSliceP("part", "p", make([]string, 0), "use -part [participators] or -p [participators]")
+	cmCmd.Flags().StringP("start", "s", "2017-Jan-25", "use -start or -s [year-month-day]")
+	cmCmd.Flags().StringP("end", "e", "2017-Jan-25", "use -end or -e [year-month-day]")
 }

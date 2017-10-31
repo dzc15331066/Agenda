@@ -38,7 +38,7 @@ to quickly create a Cobra application.`,
 		} else {
 			res := as.DeleteAllMeetings()
 			if !res {
-				fmt.Printf("[error]: you haven't ever create meeting")
+				fmt.Println("[error]: you haven't ever create meeting")
 			} else {
 				fmt.Println("[success]: all the meetings are deleted successfully!")
 			}
