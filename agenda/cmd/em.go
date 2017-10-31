@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"Agenda/agenda/entity"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -32,6 +33,18 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("em called")
+		if as.AgendaStorage.CurUser == (entity.User{}) {
+			fmt.Println("[error]: not login yet!")
+		} else {
+			title, _ := cmd.Flags().GetString("title")
+			username := as.AgendaStorage.CurUser.Name
+			res := as.ExitFromMeeting(username, title)
+			if res {
+				fmt.Printf("[success]:exit from the meeting %s successfully!", title)
+			} else {
+				fmt.Printf("[error]: never partcicipate in the meeting %s", title)
+			}
+		}
 	},
 }
 
@@ -47,4 +60,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// emCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	cmCmd.Flags().StringP("title", "t", "", "use --title or -t [meeting's title]")
 }

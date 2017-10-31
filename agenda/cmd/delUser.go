@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"Agenda/agenda/entity"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -32,6 +33,18 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("delUser called")
+		username, _ := cmd.Flags().GetString("user")
+		password, _ := cmd.Flags().GetString("password")
+		if as.AgendaStorage.CurUser == (entity.User{}) {
+			fmt.Println("[error]: not login yet!")
+		} else {
+			res := as.DeleteUser(username, password)
+			if !res {
+				fmt.Println("[error]: not exits such user.")
+			} else {
+				fmt.Printf("[success]: delete user %s successfully!\n", username)
+			}
+		}
 	},
 }
 
@@ -47,4 +60,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// delUserCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	delUserCmd.Flags().StringP("user", "u", "", "use -user or -u [username]")
+	delUserCmd.Flags().StringP("password", "p", "", "user -password or -p [password]")
 }

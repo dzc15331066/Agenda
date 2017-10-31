@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"Agenda/agenda/entity"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -32,6 +33,14 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("query called")
+		if as.AgendaStorage.CurUser == (entity.User{}) {
+			fmt.Println("[error] : not registered yet!")
+		} else {
+			userlist := as.ListAllUsers()
+			for index, u := range userlist {
+				fmt.Println(index+1, u.Name, u.Email, u.Phone)
+			}
+		}
 	},
 }
 

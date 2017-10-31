@@ -32,6 +32,14 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("dm called")
+		title, _ := cmd.Flags().GetString("title")
+		res := as.DeleteMeeting(title)
+		if res {
+			fmt.Println("[success]: deleting meeting successfully!")
+		} else {
+			fmt.Println("[error]: deleting meeting fails!")
+		}
+
 	},
 }
 
@@ -47,4 +55,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// dmCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	dmCmd.Flags().StringP("title", "t", "", "use -title or -t [meeting'title]")
 }

@@ -32,6 +32,14 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("login called")
+		username, _ := cmd.Flags().GetString("user")
+		password, _ := cmd.Flags().GetString("password")
+		res := as.UserLogin(username, password)
+		if !res {
+			fmt.Printf("[error]:%s hasn't registered!\n", username)
+		} else {
+			fmt.Printf("[success]:%s login successfully!\n", username)
+		}
 	},
 }
 
@@ -47,4 +55,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// loginCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	loginCmd.Flags().StringP("user", "u", "", "use -user [username] or -u [username]")
+	loginCmd.Flags().StringP("password", "p", "", "user -password [password] or -p [password]")
 }
