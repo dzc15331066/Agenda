@@ -2,10 +2,12 @@ package entity
 
 import (
 	"encoding/json"
-	"github.com/sirupsen/logrus"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -64,6 +66,7 @@ func (s *storage) writeToFile() bool {
 // add a user to user list.
 func (s *storage) AddUser(user User) {
 	s.UserList = append(s.UserList, user)
+	//fmt.Println(s.UserList)
 }
 
 // query users and return a query list.
@@ -90,6 +93,9 @@ func (s *storage) DeleteUser(filter func(User) bool) int {
 		}
 	}
 	s.UserList = users
+	//if the deleted user is the current user,
+	//should clear the CurUser.txt and logout the user
+
 	return ret
 }
 
@@ -130,7 +136,6 @@ func (s *storage) DeleteMeeting(filter func(Meeting) bool) int {
 		}
 	}
 	s.MeetingList = meetings
-
 	return count
 }
 
@@ -151,12 +156,16 @@ func (s *storage) ExitFromMeetings(filter func(Meeting) int) bool {
 // if successful return true, else retuern false
 func (s *storage) AddParticipator(username string, filter func(Meeting) bool) bool {
 
-	for _, m := range s.MeetingList {
+	for index, m := range s.MeetingList {
 		if filter(m) {
 			m.Participators = append(m.Participators, username)
+			fmt.Println(m.Participators)
+			//这里应该引用来赋值，直接赋值改变不了
+			s.MeetingList[index].Participators = m.Participators
 			return true
 		}
 	}
+	fmt.Println("here wrong")
 	return false
 }
 
@@ -211,28 +220,33 @@ func readFromFile(datalist interface{}, filename string) {
 }
 
 // write datalist to file.
-func writeToFile(datalist interface{}, filename string) {
+func writeToFile(datalist interface{}, filename string) bool {
 	data, err := json.Marshal(datalist)
 	if err != nil {
 		log.Fatal(err)
+		return false
 	}
 
 	err = ioutil.WriteFile(filename, data, 0666)
 	if err != nil {
 		log.Fatal(err)
+		return false
 	}
 
+	return true
 }
 
 // erase current user file while logout.
-func eraseCurUser() {
-	file, err := os.OpenFile(curUserFilename, os.O_RDWR|os.O_CREATE, 0755)
+func eraseCurUser() bool {
+	file, err := os.OpenFile(curUserFilename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 	defer file.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	err = file.Truncate(0)
 	if err != nil {
 		log.Fatal(err)
 	}
+	return true
 }

@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -32,6 +33,21 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("cm called")
+		title, _ := cmd.Flags().GetString("title")
+		participator, _ := cmd.Flags().GetStringSlice("part")
+		start, _ := cmd.Flags().GetString("start")
+		end, _ := cmd.Flags().GetString("end")
+		sponsor := as.AgendaStorage.CurUser.Name
+		// time parse
+		const shortForm = "2006-Jan-02"
+		s, _ := time.Parse(shortForm, start)
+		e, _ := time.Parse(shortForm, end)
+		res := as.AddMeeting(sponsor, title, s, e, participator)
+		if !res {
+			fmt.Println("[error]: Adding meeting fails!check out and try again")
+		} else {
+			fmt.Println("[success]: Adding meeting successfully!")
+		}
 	},
 }
 
@@ -47,4 +63,8 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// cmCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	cmCmd.Flags().StringP("title", "t", "", "use -title [meeting's title] or -t [meeting's title]")
+	cmCmd.Flags().StringSliceP("part", "p", make([]string, 1), "use -part [participators] or -p [participators]")
+	cmCmd.Flags().StringP("start", "s", "2017-10-25", "use -start or -s [year-month-day]")
+	cmCmd.Flags().StringP("end", "e", "2017-10-25", "use -end or -e [year-month-day]")
 }

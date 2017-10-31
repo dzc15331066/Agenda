@@ -17,6 +17,8 @@ package cmd
 import (
 	//"fmt"
 
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
@@ -34,14 +36,19 @@ to quickly create a Cobra application.`,
 		username, _ := cmd.Flags().GetString("user")
 		password, _ := cmd.Flags().GetString("password")
 		email, _ := cmd.Flags().GetString("email")
-		phone, _ := cmd.Flags().GetString("phone")
-		as.UserRegister(username, password, email, phone)
+		phone, _ := cmd.Flags().GetString("contact")
+		//fmt.Println(username, password, email, phone)
+		res := as.UserRegister(username, password, email, phone)
+		if !res {
+			fmt.Println("[error]:The user has existed or wrongness within system!\n")
+		} else {
+			fmt.Println("[success]:OK! register successfully!\n")
+		}
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(registerCmd)
-
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
@@ -52,7 +59,7 @@ func init() {
 	// is called directly, e.g.:
 	// registerCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	registerCmd.Flags().StringP("user", "u", "", "Help message for username")
-	registerCmd.Flags().StringP("password", "", "", "Help message for password")
-	registerCmd.Flags().StringP("email", "", "", "Help message for email")
-	registerCmd.Flags().StringP("phone", "", "", "Help message for phone")
+	registerCmd.Flags().StringP("password", "p", "", "Help message for password")
+	registerCmd.Flags().StringP("email", "e", "", "Help message for email")
+	registerCmd.Flags().StringP("contact", "c", "", "Help message for phone")
 }

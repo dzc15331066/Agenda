@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -20,23 +21,34 @@ func (as *AgendaService) UserLogin(username string, password string) bool {
 		return username == user.Name && password == user.Password
 	})
 
+	//fmt.Println(res)
+
 	if len(res) > 0 {
 		// set current user
-		as.AgendaStorage.CurUser = res[0]
+		//fmt.Println(res[0])
+		if as.AgendaStorage.CurUser == (User{}) {
+			as.AgendaStorage.CurUser = res[0]
+			as.AgendaStorage.Sync()
+			return true
+		}
 	}
-	return true
+	return false
 }
 
 // agenda logout
 // user logout.
 func (as *AgendaService) UserLogout() bool {
-	eraseCurUser()
-	return true
+	if eraseCurUser() {
+		as.AgendaStorage.CurUser = User{}
+		as.AgendaStorage.writeToFile()
+		return true
+	}
+	return false
 }
 
 // agenda register
 // regist a user.
-func (as *AgendaService) UserRegister(username string, password string, email string, phone string) {
+func (as *AgendaService) UserRegister(username string, password string, email string, phone string) bool {
 	log.Infoln("Register...:")
 	if username == "" || password == "" || email == "" || phone == "" {
 		log.Fatalln("invalid argument")
@@ -48,9 +60,12 @@ func (as *AgendaService) UserRegister(username string, password string, email st
 
 	if len(userList) > 0 {
 		log.Fatalln("user has been registered")
+		return false
 	}
-
+	//register successfully, wirte to outfile
 	as.AgendaStorage.AddUser(*user)
+	res := as.AgendaStorage.writeToFile()
+	return res
 }
 
 // agenda delUser
@@ -60,6 +75,14 @@ func (as *AgendaService) DeleteUser(username string, password string) bool {
 	ret = as.AgendaStorage.DeleteUser(func(user User) bool {
 		return user.Name == username && user.Password == password
 	})
+	if ret > 0 {
+		//if the deleted user is the current user,
+		//logout the current user
+		if username == as.AgendaStorage.CurUser.Name {
+			as.UserLogout()
+		}
+		as.AgendaStorage.Sync()
+	}
 	return ret > 0
 }
 
@@ -120,6 +143,7 @@ func (as *AgendaService) AddMeeting(sponsor string, title string, start time.Tim
 	}
 	// not exists, add it into meetingList of database
 	as.AgendaStorage.addMeeting(meeting)
+	as.AgendaStorage.writeToFile()
 	return true
 }
 
@@ -156,6 +180,9 @@ func (as *AgendaService) DeleteMeeting(title string) bool {
 		return meeting.Sponsor == as.AgendaStorage.CurUser.Name && meeting.Title == title
 	})
 
+	if num > 0 {
+		as.AgendaStorage.writeToFile()
+	}
 	return num > 0
 }
 
@@ -188,7 +215,8 @@ func (as *AgendaService) AddParticipator(username string, title string) bool {
 	users := as.AgendaStorage.QueryUser(func(user User) bool {
 		return username == user.Name
 	})
-	if len(users) > 0 {
+
+	if len(users) == 0 {
 		return false
 	}
 	res := as.AgendaStorage.AddParticipator(username, func(m Meeting) bool {
@@ -197,6 +225,10 @@ func (as *AgendaService) AddParticipator(username string, title string) bool {
 		}
 		return false
 	})
+	if res {
+		as.AgendaStorage.Sync()
+	}
+	fmt.Println(res)
 	return res
 }
 
