@@ -12,7 +12,24 @@ Under the help of Cobra, we can create some commands easily, for example, in Age
 
 ### Flags
 
-Under the help of Cobra, wen can easily parse the commands and create subCommands, for example, in our application, some Flags are parsed as follow:
+Under the help of Cobra, wen can easily register and parse the commands and create subCommands, for example, in our application, some Flags are parsed as follow:
+
+register command of login:
+```
+	loginCmd.Flags().StringP("user", "u", "", "use -user [username] or -u [username]")
+	loginCmd.Flags().StringP("password", "p", "", "user -password [password] or -p [password]")
+```
+parse it
+
+```
+	username, _ := cmd.Flags().GetString("user")
+	password, _ := cmd.Flags().GetString("password")
+```
+### MVC and oriented object design mode
+
+Agenda use three layer (view, logical controller, data) to build up the project and use oriented object designing mode to achieve entities like AgendaService, User, Meeeting, which looks as if those entities are real objects compared with obeject in Java or C++.
+
+
 
 # Design
 ### Achievements of course requires
@@ -22,7 +39,7 @@ Under the help of Cobra, wen can easily parse the commands and create subCommand
 * Support ``automatical testing``, help you tesing the apllication quickly.
 * Use ``Flags`` to parse commands
 
-### designing of Agenda
+### Designing of Agenda
   we use Architecture of`` MVC``, achieves the separetion among ``view`` layer, ``logical controll`` layer and ``data layer``. 
   
     Agenda/cmd/
