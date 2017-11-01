@@ -140,7 +140,7 @@ func TestAddMeeting(t *testing.T) {
 		t.Error(err)
 	} else {
 		res := string(bytes)
-		want := `[{"Sponsor":"Username","Participators":["part1","part2"],"Start":"2001-11-11T12:00:00+08:00","End":"2005-12-11T13:00:00+08:00","Title":"meeting"}]`
+		want := `[{"Sponsor":"Username","Participators":["part1","part2"],"Start":"2001-11-11T12:00:00Z","End":"2005-12-11T13:00:00Z","Title":"meeting"}]`
 		if res != want {
 			t.Errorf("want %q but get %q", want, res)
 		}
@@ -244,7 +244,7 @@ func TestExitFromMeeting(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	want := `[{"Sponsor":"Username","Participators":["part2"],"Start":"2001-11-11T12:00:00+08:00","End":"2005-12-11T13:00:00+08:00","Title":"meeting"}]`
+	want := `[{"Sponsor":"Username","Participators":["part2"],"Start":"2001-11-11T12:00:00Z","End":"2005-12-11T13:00:00Z","Title":"meeting"}]`
 	res := string(bytes)
 	if res != want {
 		t.Errorf("want %q but get %q", want, res)

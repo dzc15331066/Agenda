@@ -31,8 +31,8 @@ func (m *Meeting) ParticipatorIndex(username string) int {
 
 // change string "yyyy-mm-dd/hh:mm" to Date.
 func StringToDate(str string) (time.Time, error) {
-	loc, _ := time.LoadLocation("Local")
-	date, err := time.ParseInLocation(format, str, loc)
+	utc, _ := time.LoadLocation("UTC")
+	date, err := time.ParseInLocation(format, str, utc)
 	return date, err
 }
 
