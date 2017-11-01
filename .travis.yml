@@ -4,6 +4,6 @@ language:	go
 go:
   - tip # The latest version of Go.
 
-install:	go get ./..
+install:	go get -t
 script: cd ./test ; ./test.sh
 
