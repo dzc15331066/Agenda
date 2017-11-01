@@ -35,9 +35,10 @@ Agenda use three layer (view, logical controller, data) to build up the project 
 ### Achievements of course requires
 * Use ``Json`` file to read or write the entities , User and  Meeting.
 * Support service of ``log`` ,records and traces the operations of user and some important output. 
-* Have ``.travis.yml ``file in project
+* Use ``.travis.yml ``file in project
 * Support ``automatical testing``, help you tesing the apllication quickly.
 * Use ``Flags`` to parse commands
+* Use ``Time`` to parse time
 
 ### Designing of Agenda
   we use Architecture of`` MVC``, achieves the separetion among ``view`` layer, ``logical controll`` layer and ``data layer``. 
@@ -131,13 +132,46 @@ we regard agendaservice and storage as entities too, and put them together with 
  
 # Testing
 
+In this module, we've finished testing work for each APIs of AgendaService and now we can conclude that everything works well. Of course, we use the golang pakeage of ``testing ``, which helps a lot in ``unit test``. some of our testing results are showed as follow:
+
+here is the testing results
+
+
 # Installing
 Using Agenda is easy.First, use ``git clone`` to install the project
 
     git clone https://github.com/dzc15331066/Agenda
     
 # Getting Started
- 
+ While you are welcome to provide your own organization, typically our Agenda apllication shows the following organizaion structure.
+ ```
+ Agenda
+ --cmd
+ 	--addPart.go
+    	--clear.go	
+    	--cm.go	
+    	--delPart.go	
+    	--delUser.go	
+    	--dm.go	
+    	--em.go	
+    	--login.go	
+    	--logout.go
+    	--qm.go	
+    	--query.go	
+    	--register.go	
+    	--root.go
+ --entity
+ 	--agendaService.go	
+   	--meeting.go	
+    	--storage.go	
+    	--user.go
+ --test
+ 	--agenda_test.go
+	--test.sh
+```
+
+To start ``Agenda``, you should enter the directory ``Agenda/``, and run the command ``go build``, and then you can use Agenda commands as this format ``Agenda [Command] [subCommand]...``, more details can be get once you enter ``./agenda -h``, enjoy yourself!
+
 
 
 [git协同开发参考](https://github.com/livoras/blog/issues/7)
