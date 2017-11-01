@@ -15,7 +15,7 @@
 package cmd
 
 import (
-	"github.com/Agenda/entity"
+	"github.com/dzc15331066/Agenda/entity"
 	"fmt"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
