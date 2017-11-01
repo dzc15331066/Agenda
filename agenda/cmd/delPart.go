@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	"Agenda/agenda/entity"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -27,26 +26,15 @@ var delPartCmd = &cobra.Command{
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
-
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("delPart called")
-		if as.AgendaStorage.CurUser == (entity.User{}) {
-			fmt.Println("[error]: not login yet!")
-		} else {
-			title, _ := cmd.Flags().GetString("title")
-			participators, _ := cmd.Flags().GetStringSlice("part")
-			for _, username := range participators {
-				res := as.DelParticipator(username, title)
-				if res {
-					fmt.Println("[success]: delete participators successfully!")
-				} else {
-					fmt.Printf("%s hasn't registered!\n", username)
-				}
-			}
-		}
+		title, _ := cmd.Flags().GetString("title")
+		participators, _ := cmd.Flags().GetStringSlice("part")
+		err := as.DelParticipator(participators, title)
+		message(err, "[success]: delete participators successfully!")
 	},
 }
 

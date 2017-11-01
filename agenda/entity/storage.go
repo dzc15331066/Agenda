@@ -2,22 +2,17 @@ package entity
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io/ioutil"
 	"os"
 	"sync"
-
-	"github.com/sirupsen/logrus"
 )
 
 const (
 	curUserFilename = "curUser.txt"
 	userFilename    = "userList.json"
 	meetingFilename = "meetingList.json"
-	logfilename     = "log.txt"
 )
-
-var log = logrus.New()
 
 type storage struct {
 	UserList    []User
@@ -34,33 +29,50 @@ var (
 // create a thread safe singleton of storage.
 func Storage() *storage {
 	once.Do(func() {
-		InitLog()
 		s = &storage{}
 		s.UserList = make([]User, 0)
 		s.MeetingList = make([]Meeting, 0)
-		s.CurUser = User{}
-		s.readFromFile()
 	})
 	return s
 
 }
 
-// read.
-func (s *storage) readFromFile() bool {
-	readFromFile(&s.UserList, userFilename)
-	readFromFile(&s.MeetingList, meetingFilename)
-	readFromFile(&s.CurUser, curUserFilename)
-	return true
+// read users from file.
+func (s *storage) readUsers() error {
+	return readFromFile(&s.UserList, userFilename)
 }
 
-// write.
-func (s *storage) writeToFile() bool {
-	writeToFile(s.UserList, userFilename)
-	writeToFile(s.MeetingList, meetingFilename)
-	if s.CurUser != (User{}) {
-		writeToFile(s.CurUser, curUserFilename)
+// read meetings from file.
+func (s *storage) readMeetings() error {
+	return readFromFile(&s.MeetingList, meetingFilename)
+}
+
+// read curUses from file.
+func (s *storage) readCurUser() error {
+	if err := readFromFile(&s.CurUser, curUserFilename); err != nil {
+		return err
+	} else if s.CurUser == (User{}) {
+		return errors.New("Failed! please login first")
 	}
-	return true
+	return nil
+}
+
+// write users to file.
+func (s *storage) writeUsers() error {
+	return writeToFile(s.UserList, userFilename)
+}
+
+// write meetings to file.
+func (s *storage) writeMeetings() error {
+	return writeToFile(s.MeetingList, meetingFilename)
+}
+
+// write current to file.
+func (s *storage) writeCurUser() error {
+	if s.CurUser != (User{}) {
+		return writeToFile(s.CurUser, curUserFilename)
+	}
+	return nil
 }
 
 // add a user to user list.
@@ -108,6 +120,19 @@ func (s *storage) ListAllusers() []User {
 func (s *storage) addMeeting(m Meeting) {
 	s.MeetingList = append(s.MeetingList, m)
 
+}
+
+// query meeting index
+// return a index
+func (s *storage) QueryIndexOfMeeting(filter func(Meeting) bool) int {
+	index := -1
+	for i, m := range s.MeetingList {
+		if filter(m) {
+			index = i
+			break
+		}
+	}
+	return index
 }
 
 // query meetings
@@ -158,102 +183,47 @@ func (s *storage) ExitFromMeetings(filter func(Meeting) int) bool {
 	return false
 }
 
-// add a participator from some meeting by meeting's title
-// if successful return true, else retuern false
-func (s *storage) AddParticipator(username string, filter func(Meeting) bool) bool {
-
-	for index, m := range s.MeetingList {
-		if filter(m) {
-			m.Participators = append(m.Participators, username)
-			fmt.Println(m.Participators)
-			//这里应该引用来赋值，直接赋值改变不了
-			s.MeetingList[index].Participators = m.Participators
-			return true
-		}
-	}
-	fmt.Println("here wrong")
-	return false
-}
-
-// delete a participator form some meeting by meeting's title
-// if successful return true, else return false.
-func (s *storage) DelParticipator(username string, filter func(Meeting) int) bool {
-	for i, m := range s.MeetingList {
-		if index := filter(m); index >= 0 {
-			m.Participators = append(m.Participators[:index], m.Participators[index+1:]...)
-			s.MeetingList[i].Participators = m.Participators
-			return true
-		}
-	}
-	return false
-}
-
-// sync with the files.
-func (s *storage) Sync() {
-	s.writeToFile()
-	log.Out.(*os.File).Close()
-}
-
-// intit a log
-func InitLog() {
-	logfile, err := os.OpenFile(logfilename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err == nil {
-		log.Out = logfile
-	} else {
-		log.Info("Failed to log to file, using default stderr")
-	}
-}
-
 // read json to datalist from file.
-func readFromFile(datalist interface{}, filename string) {
+func readFromFile(datalist interface{}, filename string) error {
 	//read data from file
 	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0755)
 	defer file.Close()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	data, err := ioutil.ReadAll(file)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	if len(data) > 0 {
-		err = json.Unmarshal(data, &datalist)
-		if err != nil {
-			log.Fatal(err)
-		}
+		return json.Unmarshal(data, &datalist)
 	}
+	return nil
 
 }
 
 // write datalist to file.
-func writeToFile(datalist interface{}, filename string) bool {
+func writeToFile(datalist interface{}, filename string) error {
 	data, err := json.Marshal(datalist)
 	if err != nil {
-		log.Fatal(err)
-		return false
+		return err
 	}
-
-	err = ioutil.WriteFile(filename, data, 0666)
-	if err != nil {
-		log.Fatal(err)
-		return false
-	}
-
-	return true
+	return ioutil.WriteFile(filename, data, 0666)
 }
 
 // erase current user file while logout.
-func eraseCurUser() bool {
+func (s *storage) eraseCurUser() error {
 	file, err := os.OpenFile(curUserFilename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 	defer file.Close()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	err = file.Truncate(0)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return true
+	return file.Truncate(0)
+}
+
+func (s *storage) setCurUser(user User) error {
+	s.CurUser = user
+	return s.writeCurUser()
 }

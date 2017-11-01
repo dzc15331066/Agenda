@@ -26,19 +26,14 @@ var dmCmd = &cobra.Command{
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
-
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("dm called")
 		title, _ := cmd.Flags().GetString("title")
-		res := as.DeleteMeeting(title)
-		if res {
-			fmt.Println("[success]: deleting meeting successfully!")
-		} else {
-			fmt.Println("[error]: deleting meeting fails!")
-		}
+		err := as.DeleteMeeting(title)
+		message(err, "[success]: deleting meeting successfully!")
 
 	},
 }

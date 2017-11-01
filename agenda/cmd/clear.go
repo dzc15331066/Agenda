@@ -15,9 +15,7 @@
 package cmd
 
 import (
-	"Agenda/agenda/entity"
 	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -27,22 +25,13 @@ var clearCmd = &cobra.Command{
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
-
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("clear called")
-		if as.AgendaStorage.CurUser == (entity.User{}) {
-			fmt.Println("[error]: not login yet!")
-		} else {
-			res := as.DeleteAllMeetings()
-			if !res {
-				fmt.Println("[error]: you haven't ever create meeting")
-			} else {
-				fmt.Println("[success]: all the meetings are deleted successfully!")
-			}
-		}
+		err := as.DeleteAllMeetings()
+		message(err, "[success]: all the meetings are deleted successfully!")
 	},
 }
 

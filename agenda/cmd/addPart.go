@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	"Agenda/agenda/entity"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -27,7 +26,6 @@ var addPartCmd = &cobra.Command{
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
-
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
@@ -35,18 +33,8 @@ to quickly create a Cobra application.`,
 		fmt.Println("addPart called")
 		title, _ := cmd.Flags().GetString("title")
 		participators, _ := cmd.Flags().GetStringSlice("part")
-		if as.AgendaStorage.CurUser == (entity.User{}) {
-			fmt.Println("[error]: not registered yet!")
-		} else {
-			for _, username := range participators {
-				res := as.AddParticipator(username, title)
-				if !res {
-					fmt.Printf("[error]: %s hasn't registered!\n", username)
-				} else {
-					fmt.Println("[success]: all the participators are added.")
-				}
-			}
-		}
+		err := as.AddParticipator(participators, title)
+		message(err, "[success]: all the participators are added.")
 	},
 }
 

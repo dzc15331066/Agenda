@@ -15,9 +15,7 @@
 package cmd
 
 import (
-	"Agenda/agenda/entity"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -28,30 +26,24 @@ var qmCmd = &cobra.Command{
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
-
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("qm called")
-		if as.AgendaStorage.CurUser == (entity.User{}) {
-			fmt.Println("[error]: not login yet!")
+		start, _ := cmd.Flags().GetString("start")
+		end, _ := cmd.Flags().GetString("end")
+		meetings, err := as.QueryMeeting(start, end)
+		if err != nil {
+			fmt.Println(err)
+			log.Infoln(err)
 		} else {
-			sponsor := as.AgendaStorage.CurUser.Name
-			start, _ := cmd.Flags().GetString("start")
-			end, _ := cmd.Flags().GetString("end")
-			const shortForm = "2006-Jan-02"
-			s, _ := time.Parse(shortForm, start)
-			e, _ := time.Parse(shortForm, end)
-			meetings := as.QueryMeeting(sponsor, s, e)
-			if len(meetings) > 0 {
-				for index, m := range meetings {
-					fmt.Println(index+1, m.Title, m.Sponsor, m.Participators, m.Start, m.End)
-				}
-			} else {
-				fmt.Println("[error]: you've never participated a meeting")
+			fmt.Println("results:")
+			for index, m := range meetings {
+				fmt.Println(index+1, m.Title, m.Sponsor, m.Participators, m.Start, m.End)
 			}
 		}
+
 	},
 }
 

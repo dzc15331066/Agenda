@@ -15,8 +15,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -26,20 +24,15 @@ var loginCmd = &cobra.Command{
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
-
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("login called")
+		log.Infoln("Login:")
 		username, _ := cmd.Flags().GetString("user")
 		password, _ := cmd.Flags().GetString("password")
-		res := as.UserLogin(username, password)
-		if !res {
-			fmt.Printf("[error]:%s hasn't registered!\n", username)
-		} else {
-			fmt.Printf("[success]:%s login successfully!\n", username)
-		}
+		err := as.UserLogin(username, password)
+		message(err, "[success]: login successfully!")
 	},
 }
 

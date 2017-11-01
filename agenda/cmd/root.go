@@ -18,13 +18,19 @@ import (
 	"Agenda/agenda/entity"
 	"fmt"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
 )
 
-var as = entity.NewAgendaService()
-var cfgFile string
+const logfilename = "log.txt"
+
+var (
+	log     = logrus.New()
+	as      = entity.NewAgendaService()
+	cfgFile string
+)
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -48,11 +54,11 @@ func Execute() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	as.Quit()
 }
 
 func init() {
 	cobra.OnInitialize(initConfig)
+	initLog()
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
@@ -87,5 +93,26 @@ func initConfig() {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	}
+}
+
+// intit a log
+func initLog() {
+	logfile, err := os.OpenFile(logfilename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err == nil {
+		log.Out = logfile
+	} else {
+		log.Info("Failed to log to file, using default stderr")
+	}
+}
+
+// tips and log.
+func message(err error, msg string) {
+	if err != nil {
+		log.Infoln(err)
+		fmt.Println(err)
+	} else {
+		log.Infoln(msg)
+		fmt.Println(msg)
 	}
 }

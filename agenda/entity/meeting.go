@@ -30,13 +30,18 @@ func (m *Meeting) ParticipatorIndex(username string) int {
 }
 
 // change string "yyyy-mm-dd/hh:mm" to Date.
-func StringToDate(str string) time.Time {
+func StringToDate(str string) (time.Time, error) {
 	loc, _ := time.LoadLocation("Local")
-	date, _ := time.ParseInLocation(format, str, loc)
-	return date
+	date, err := time.ParseInLocation(format, str, loc)
+	return date, err
 }
 
 // change date to string format "yyyy-mm-dd/hh:mm".
 func DateToString(date time.Time) string {
 	return date.Format(format)
+}
+
+// check whether meeting conflicts the dates.
+func (meeting *Meeting) OverLap(start time.Time, end time.Time) bool {
+	return meeting.Start.Before(start) && start.Before(meeting.End) || start.Before(meeting.Start) && meeting.Start.Before(end) || start.Before(meeting.Start) && end.After(meeting.End) || meeting.Start.Before(start) && meeting.End.After(end)
 }

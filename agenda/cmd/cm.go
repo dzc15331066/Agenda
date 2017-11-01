@@ -15,10 +15,6 @@
 package cmd
 
 import (
-	"Agenda/agenda/entity"
-	"fmt"
-	"time"
-
 	"github.com/spf13/cobra"
 )
 
@@ -28,31 +24,18 @@ var cmCmd = &cobra.Command{
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
-
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("cm called")
+		log.Infoln("Create Meeting:")
 		title, _ := cmd.Flags().GetString("title")
 		participator, _ := cmd.Flags().GetStringSlice("part")
 		start, _ := cmd.Flags().GetString("start")
 		end, _ := cmd.Flags().GetString("end")
-		sponsor := as.AgendaStorage.CurUser.Name
 		// time parse
-		if as.AgendaStorage.CurUser == (entity.User{}) {
-			fmt.Println("[error]: not login yet!")
-		} else {
-			const shortForm = "2006-Jan-02"
-			s, _ := time.Parse(shortForm, start)
-			e, _ := time.Parse(shortForm, end)
-			res := as.AddMeeting(sponsor, title, s, e, participator)
-			if !res {
-				fmt.Println("[error]: Adding meeting fails!check out and try again")
-			} else {
-				fmt.Println("[success]: Adding meeting successfully!")
-			}
-		}
+		err := as.AddMeeting(title, start, end, participator)
+		message(err, "[success]: Adding meeting successfully!")
 	},
 }
 

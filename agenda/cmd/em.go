@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	"Agenda/agenda/entity"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -27,24 +26,15 @@ var emCmd = &cobra.Command{
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
-
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("em called")
-		if as.AgendaStorage.CurUser == (entity.User{}) {
-			fmt.Println("[error]: not login yet!")
-		} else {
-			title, _ := cmd.Flags().GetString("title")
-			username := as.AgendaStorage.CurUser.Name
-			res := as.ExitFromMeeting(username, title)
-			if res {
-				fmt.Printf("[success]:exit from the meeting %s successfully!\n", title)
-			} else {
-				fmt.Printf("[error]: never partcicipate in the meeting %s\n", title)
-			}
-		}
+
+		title, _ := cmd.Flags().GetString("title")
+		err := as.ExitFromMeeting(title)
+		message(err, "[success]:exit from the meeting uccessfully!")
 	},
 }
 

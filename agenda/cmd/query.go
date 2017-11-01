@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	"Agenda/agenda/entity"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -27,20 +26,23 @@ var queryCmd = &cobra.Command{
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
-
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("query called")
-		if as.AgendaStorage.CurUser == (entity.User{}) {
-			fmt.Println("[error] : not registered yet!")
+		log.Infoln("List all users:")
+
+		userlist, err := as.ListAllUsers()
+		if err != nil {
+			log.Infoln(err)
+			fmt.Println(err)
 		} else {
-			userlist := as.ListAllUsers()
+			fmt.Println("List all users:")
 			for index, u := range userlist {
 				fmt.Println(index+1, u.Name, u.Email, u.Phone)
 			}
 		}
+
 	},
 }
 

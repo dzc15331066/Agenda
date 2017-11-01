@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	"Agenda/agenda/entity"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -27,7 +26,6 @@ var delUserCmd = &cobra.Command{
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
-
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
@@ -35,16 +33,8 @@ to quickly create a Cobra application.`,
 		fmt.Println("delUser called")
 		username, _ := cmd.Flags().GetString("user")
 		password, _ := cmd.Flags().GetString("password")
-		if as.AgendaStorage.CurUser == (entity.User{}) {
-			fmt.Println("[error]: not login yet!")
-		} else {
-			res := as.DeleteUser(username, password)
-			if !res {
-				fmt.Println("[error]: not exits such user.")
-			} else {
-				fmt.Printf("[success]: delete user %s successfully!\n", username)
-			}
-		}
+		err := as.DeleteUser(username, password)
+		message(err, "[success]: delete user successfully!")
 	},
 }
 

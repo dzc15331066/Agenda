@@ -1,8 +1,12 @@
 package entity
 
 import (
-	"fmt"
-	"time"
+	"errors"
+)
+
+var (
+	nullAgumentError = errors.New("[error]: aguments shouldn't be null")
+	timeFormatError  = errors.New("[error]: time format should be like yyyy-mm-dd/hh:mm")
 )
 
 type AgendaService struct {
@@ -16,7 +20,11 @@ func NewAgendaService() *AgendaService {
 
 // agenda login
 // check if the username match password.
-func (as *AgendaService) UserLogin(username string, password string) bool {
+func (as *AgendaService) UserLogin(username string, password string) error {
+
+	if err := as.AgendaStorage.readUsers(); err != nil {
+		return err
+	}
 	res := as.AgendaStorage.QueryUser(func(user User) bool {
 		return username == user.Name && password == user.Password
 	})
@@ -26,32 +34,27 @@ func (as *AgendaService) UserLogin(username string, password string) bool {
 	if len(res) > 0 {
 		// set current user
 		//fmt.Println(res[0])
-		if as.AgendaStorage.CurUser == (User{}) {
-			as.AgendaStorage.CurUser = res[0]
-			as.AgendaStorage.Sync()
-			return true
-		}
+		return as.AgendaStorage.setCurUser(res[0])
+
 	}
-	return false
+	return errors.New("[error]: Invalid username or password")
 }
 
 // agenda logout
 // user logout.
-func (as *AgendaService) UserLogout() bool {
-	if eraseCurUser() {
-		as.AgendaStorage.CurUser = User{}
-		as.AgendaStorage.writeToFile()
-		return true
+func (as *AgendaService) UserLogout() error {
+	if err := as.AgendaStorage.readCurUser(); err != nil {
+		return err
 	}
-	return false
+	return as.AgendaStorage.eraseCurUser()
 }
 
 // agenda register
 // regist a user.
-func (as *AgendaService) UserRegister(username string, password string, email string, phone string) bool {
-	log.Infoln("Register...:")
-	if username == "" || password == "" || email == "" || phone == "" {
-		log.Fatalln("invalid argument")
+func (as *AgendaService) UserRegister(username string, password string, email string, phone string) error {
+
+	if err := as.AgendaStorage.readUsers(); err != nil {
+		return err
 	}
 	user := NewUser(username, password, email, phone)
 	userList := as.AgendaStorage.QueryUser(func(user User) bool {
@@ -59,19 +62,28 @@ func (as *AgendaService) UserRegister(username string, password string, email st
 	})
 
 	if len(userList) > 0 {
-		log.Fatalln("user has been registered")
-		return false
+		return errors.New("[error]: User has been registerd")
 	}
 	//register successfully, wirte to outfile
 	as.AgendaStorage.AddUser(*user)
-	res := as.AgendaStorage.writeToFile()
-	return res
+	return as.AgendaStorage.writeUsers()
 }
 
 // agenda delUser
 // delete a user.
-func (as *AgendaService) DeleteUser(username string, password string) bool {
+func (as *AgendaService) DeleteUser(username string, password string) error {
 	var ret int
+
+	if err := as.AgendaStorage.readUsers(); err != nil {
+		return err
+	}
+
+	if err := as.AgendaStorage.readCurUser(); err != nil {
+		return err
+	}
+	if username != as.AgendaStorage.CurUser.Name || password != as.AgendaStorage.CurUser.Password {
+		return errors.New("[error]: invalid username or password")
+	}
 	ret = as.AgendaStorage.DeleteUser(func(user User) bool {
 		return user.Name == username && user.Password == password
 	})
@@ -79,130 +91,183 @@ func (as *AgendaService) DeleteUser(username string, password string) bool {
 		//if the deleted user is the current user,
 		//logout the current user
 		if username == as.AgendaStorage.CurUser.Name {
-			as.UserLogout()
+			if err := as.AgendaStorage.eraseCurUser(); err != nil {
+				return err
+			}
 		}
-		as.AgendaStorage.Sync()
+		return as.AgendaStorage.writeUsers()
 	}
-	return ret > 0
+	return nil
 }
 
 // agenda query
 // list all users from storage
 // return the list result.
-func (as *AgendaService) ListAllUsers() []User {
+func (as *AgendaService) ListAllUsers() ([]User, error) {
+	if err := as.AgendaStorage.readUsers(); err != nil {
+		return nil, err
+	}
 
-	return as.AgendaStorage.ListAllusers()
+	return as.AgendaStorage.ListAllusers(), nil
 }
 
 // agenda cm
 // add a meeting.
-func (as *AgendaService) AddMeeting(sponsor string, title string, start time.Time, end time.Time, participator []string) bool {
-	// invaliable data
-	if start.After(end) || len(sponsor) <= 0 || len(title) <= 0 {
-		return false
+func (as *AgendaService) AddMeeting(title string, startdate string, enddate string, participators []string) error {
+	if title == "" || startdate == "" || enddate == "" || participators == nil {
+		return nullAgumentError
 	}
-	//query the meeting to add in database, if the meeting has existed return false
-	var meeting Meeting = NewMeeting(sponsor, participator, start, end, title)
-	meetings := as.AgendaStorage.QueryMeeting(func(meeting Meeting) bool {
+	start, err := StringToDate(startdate)
+	if err != nil {
+		return timeFormatError
+	}
+	end, err := StringToDate(enddate)
+	if err != nil {
+		return timeFormatError
+	}
+	if err := as.AgendaStorage.readMeetings(); err != nil {
+		return err
+	}
 
-		if meeting.Sponsor == sponsor {
-			// time conflict as for sponsor
-			if meeting.Start.Before(start) && start.Before(meeting.End) || start.Before(meeting.Start) && meeting.Start.Before(end) || start.Before(meeting.Start) && end.After(meeting.End) || meeting.Start.Before(start) && meeting.End.After(end) {
+	if err := as.AgendaStorage.readCurUser(); err != nil {
+		return err
+	}
+	sponsor := as.AgendaStorage.CurUser.Name
+	meeting := NewMeeting(sponsor, participators, start, end, title)
+	//title conflict
+	mIndex := as.AgendaStorage.QueryIndexOfMeeting(func(m Meeting) bool {
+		return m.Title == title
+	})
+	if mIndex >= 0 {
+		return errors.New("[error]: There is a title conflict with another title")
+	}
+	// invaliable date
+	if start.After(end) {
+		return errors.New("[error]: start date can't be later than end date")
+	}
+
+	// query current  user sponsors other meeting with time conflict
+	mIndex = as.AgendaStorage.QueryIndexOfMeeting(func(m Meeting) bool {
+
+		return m.Sponsor == sponsor && m.OverLap(start, end)
+	})
+	if mIndex >= 0 {
+		return errors.New("[error]: You have a time conflict meeting as sponsor")
+	}
+	// the sponsor is Participator in some other meetings and time conflict
+	mIndex = as.AgendaStorage.QueryIndexOfMeeting(func(m Meeting) bool {
+		return m.ParticipatorIndex(sponsor) >= 0 && m.OverLap(start, end)
+	})
+	if mIndex >= 0 {
+		return errors.New("[error]: You have a time conflict meeting as participator")
+	}
+	// some participators time conflict
+	mIndex = as.AgendaStorage.QueryIndexOfMeeting(func(m Meeting) bool {
+		for _, par := range participators {
+			if (m.ParticipatorIndex(par) > 0 || m.Sponsor == par) && m.OverLap(start, end) {
 				return true
 			}
-		}
-		// the sponsor is Participator in some other meetings and time conflict
-		for _, par := range meeting.Participators {
-			if par == sponsor {
-				if meeting.Start.Before(start) && start.Before(meeting.End) || start.Before(meeting.Start) && meeting.Start.Before(end) || start.Before(meeting.Start) && end.After(meeting.End) || meeting.Start.Before(start) && meeting.End.After(end) {
-					return true
-				}
-			}
-		}
-		//title conflict
-		if meeting.Title == title {
-			return true
-		}
 
-		// the some of the participators is the sponsor of the other meeting and time conflict
-		for _, par := range participator {
-			if meeting.Sponsor == par {
-				if meeting.Start.Before(start) && start.Before(meeting.End) || start.Before(meeting.Start) && meeting.Start.Before(end) || start.Before(meeting.Start) && end.After(meeting.End) || meeting.Start.Before(start) && meeting.End.After(end) {
-					return true
-				}
-			}
 		}
-
-		// we collect those unsatisfied meeetings into meetings
 		return false
-
 	})
-	//if those unsatisfied meetings exists, the meeting cannot be created
-	if len(meetings) > 0 {
-		return false
+	if mIndex >= 0 {
+		return errors.New("[error]: Can't create meeting since some participators have time conflict")
 	}
-	// not exists, add it into meetingList of database
+	// no conflict, add it into meetingList of database)
 	as.AgendaStorage.addMeeting(meeting)
-	as.AgendaStorage.writeToFile()
-	return true
+	return as.AgendaStorage.writeMeetings()
 }
 
 // agenda qm
 // query meetings by username and time interval.
-func (as *AgendaService) QueryMeeting(username string, start time.Time, end time.Time) []Meeting {
+func (as *AgendaService) QueryMeeting(startdate string, enddate string) ([]Meeting, error) {
+	if startdate == "" || enddate == "" {
+		return nil, nullAgumentError
+	}
+	if err := as.AgendaStorage.readMeetings(); err != nil {
+		return nil, err
+	}
 
-	meetings := as.AgendaStorage.QueryMeeting(func(meeting Meeting) bool {
-		// username is the sponsor of some meeting
-		if meeting.Sponsor == username {
-			if start.Before(meeting.Start) && end.After(meeting.End) || start.After(meeting.Start) && start.Before(meeting.End) || start.Before(meeting.End) && start.After(meeting.Start) {
-				return true
-			}
-		}
-		//username is a participator of some meeting
-		for _, par := range meeting.Participators {
-			if par == username {
-				if start.Before(meeting.Start) && end.After(meeting.End) || start.After(meeting.Start) && start.Before(meeting.End) || start.Before(meeting.End) && start.After(meeting.Start) {
-					return true
-				}
-			}
-		}
-		return false
+	if err := as.AgendaStorage.readCurUser(); err != nil {
+		return nil, err
+	}
+	start, err := StringToDate(startdate)
+	if err != nil {
+		return nil, timeFormatError
+	}
+	end, err := StringToDate(enddate)
+	if err != nil {
+		return nil, timeFormatError
+	}
+	username := as.AgendaStorage.CurUser.Name
+	meetings := as.AgendaStorage.QueryMeeting(func(m Meeting) bool {
+		// username is the sponsor or a participator of some meeting
+		return (m.Sponsor == username || m.ParticipatorIndex(username) >= 0) && m.OverLap(start, end)
 	})
-
-	return meetings
+	if len(meetings) == 0 {
+		return nil, errors.New("[error]:You have no meeting between this time interval")
+	}
+	return meetings, nil
 }
 
 // agenda dm
 // delete a meeting by sponsor name(the current user's name) and title.
-func (as *AgendaService) DeleteMeeting(title string) bool {
+func (as *AgendaService) DeleteMeeting(title string) error {
+	if title == "" {
+		return nullAgumentError
+	}
+	if err := as.AgendaStorage.readMeetings(); err != nil {
+		return err
+	}
 
+	if err := as.AgendaStorage.readCurUser(); err != nil {
+		return err
+	}
 	num := as.AgendaStorage.DeleteMeeting(func(meeting Meeting) bool {
 		return meeting.Sponsor == as.AgendaStorage.CurUser.Name && meeting.Title == title
 	})
 
 	if num > 0 {
-		as.AgendaStorage.Sync()
+		return as.AgendaStorage.writeMeetings()
 	}
-	return num > 0
+	return errors.New("[error]: You have no such a meeting")
 }
 
 // agenda clear
 // delete all meetings by sponsor.
-func (as *AgendaService) DeleteAllMeetings() bool {
+func (as *AgendaService) DeleteAllMeetings() error {
+	if err := as.AgendaStorage.readMeetings(); err != nil {
+		return err
+	}
+
+	if err := as.AgendaStorage.readCurUser(); err != nil {
+		return err
+	}
 	res := as.AgendaStorage.DeleteMeeting(func(meeting Meeting) bool {
 		return meeting.Sponsor == as.AgendaStorage.CurUser.Name
 
 	})
 	if res > 0 {
-		as.AgendaStorage.Sync()
+		return as.AgendaStorage.writeMeetings()
 	}
-	return res > 0
+	return errors.New("[error]: You don't have any meeting")
 }
 
 // agenda em
 // exit from a meeting by username and meeting title.
-func (as *AgendaService) ExitFromMeeting(username string, title string) bool {
+func (as *AgendaService) ExitFromMeeting(title string) error {
+	if title == "" {
+		return nullAgumentError
+	}
+	if err := as.AgendaStorage.readMeetings(); err != nil {
+		return err
+	}
 
+	if err := as.AgendaStorage.readCurUser(); err != nil {
+		return err
+	}
+	username := as.AgendaStorage.CurUser.Name
 	res := as.AgendaStorage.ExitFromMeetings(func(meeting Meeting) int {
 		if meeting.Title == title {
 			return meeting.ParticipatorIndex(username)
@@ -210,61 +275,105 @@ func (as *AgendaService) ExitFromMeeting(username string, title string) bool {
 		return -1
 	})
 	if res {
-		as.AgendaStorage.Sync()
+		return as.AgendaStorage.writeMeetings()
 	}
-	return res
+	return errors.New("[error]: You have no such a meeting")
 }
 
 // agenda addPart
 // add a participator to a meeting sponsored by current user.
-func (as *AgendaService) AddParticipator(username string, title string) bool {
-	users := as.AgendaStorage.QueryUser(func(user User) bool {
-		return username == user.Name
+func (as *AgendaService) AddParticipator(usernames []string, title string) error {
+	if usernames == nil || title == "" {
+		return nullAgumentError
+	}
+	if err := as.AgendaStorage.readMeetings(); err != nil {
+		return err
+	}
+	if err := as.AgendaStorage.readUsers(); err != nil {
+		return err
+	}
+	if err := as.AgendaStorage.readCurUser(); err != nil {
+		return err
+	}
+	sponsor := as.AgendaStorage.CurUser.Name
+	mIndex := as.AgendaStorage.QueryIndexOfMeeting(func(m Meeting) bool {
+		return m.Sponsor == sponsor && m.Title == title
 	})
+	if mIndex == -1 {
+		return errors.New("[error]: You are not the sponsor of this meeting")
+	}
 
-	if len(users) == 0 {
-		return false
-	}
-	res := as.AgendaStorage.AddParticipator(username, func(m Meeting) bool {
-		if m.Title == title && m.Sponsor == as.AgendaStorage.CurUser.Name {
-			return m.ParticipatorIndex(username) == -1
+	m := &as.AgendaStorage.MeetingList[mIndex]
+	dirty := false
+	// check registery of participators
+	for _, username := range usernames {
+		users := as.AgendaStorage.QueryUser(func(user User) bool {
+			return username == user.Name
+		})
+
+		if len(users) == 0 {
+			return errors.New("[error]: " + username + " doesn't register")
+		} else {
+			dirty = true
+			index := as.AgendaStorage.QueryIndexOfMeeting(func(meeting Meeting) bool {
+				return (meeting.ParticipatorIndex(username) > 0 || meeting.Sponsor == username) && meeting.OverLap(m.Start, m.End)
+			})
+			if index != -1 {
+				return errors.New("[error]: " + username + " has time conflict")
+			}
+			m.Participators = append(m.Participators, username)
 		}
-		return false
-	})
-	if res {
-		as.AgendaStorage.Sync()
+
+		// participator index
+
 	}
-	fmt.Println(res)
-	return res
+	// check
+	if dirty {
+		return as.AgendaStorage.writeMeetings()
+	}
+	return nil
+
 }
 
 // agenda delPart
 // delete a participator to a meeting sponsored by current user.
-func (as *AgendaService) DelParticipator(username string, title string) bool {
-	res := as.AgendaStorage.DelParticipator(username, func(m Meeting) int {
-		if m.Title == title && m.Sponsor == as.AgendaStorage.CurUser.Name {
-			return m.ParticipatorIndex(username)
-		}
-		return -1
-	})
-	if res {
-		as.AgendaStorage.Sync()
+func (as *AgendaService) DelParticipator(usernames []string, title string) error {
+	if usernames == nil || title == "" {
+		return nullAgumentError
 	}
-	return res
-}
-
-func (as *AgendaService) IsParticipator(username string, title string) bool {
-	res := as.AgendaStorage.QueryMeeting(func(m Meeting) bool {
-		if m.Title == title {
-			return m.ParticipatorIndex(username) >= 0
-		}
-		return false
+	if err := as.AgendaStorage.readMeetings(); err != nil {
+		return err
+	}
+	if err := as.AgendaStorage.readUsers(); err != nil {
+		return err
+	}
+	if err := as.AgendaStorage.readCurUser(); err != nil {
+		return err
+	}
+	sponsor := as.AgendaStorage.CurUser.Name
+	mIndex := as.AgendaStorage.QueryIndexOfMeeting(func(m Meeting) bool {
+		return m.Sponsor == sponsor && m.Title == title
 	})
-	return len(res) > 0
-}
+	if mIndex == -1 {
+		return errors.New("[error]: You are not the sponsor of this meeting")
+	}
+	m := &as.AgendaStorage.MeetingList[mIndex]
+	dirty := false
+	for _, username := range usernames {
+		pIndex := m.ParticipatorIndex(username)
+		if pIndex != -1 {
+			dirty = true
 
-// quit
+			m.Participators = append(m.Participators[:pIndex], m.Participators[pIndex+1:]...)
+		} else {
+			return errors.New("[error]: " + username + " is not in the meeting")
+		}
 
-func (as *AgendaService) Quit() {
-	as.AgendaStorage.Sync()
+		// participator index
+
+	}
+	if dirty {
+		return as.AgendaStorage.writeMeetings()
+	}
+	return nil
 }

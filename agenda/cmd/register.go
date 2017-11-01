@@ -15,10 +15,6 @@
 package cmd
 
 import (
-	//"fmt"
-
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -37,13 +33,9 @@ to quickly create a Cobra application.`,
 		password, _ := cmd.Flags().GetString("password")
 		email, _ := cmd.Flags().GetString("email")
 		phone, _ := cmd.Flags().GetString("contact")
-		//fmt.Println(username, password, email, phone)
-		res := as.UserRegister(username, password, email, phone)
-		if !res {
-			fmt.Println("[error]:The user has existed or wrongness within system!\n")
-		} else {
-			fmt.Println("[success]:OK! register successfully!\n")
-		}
+		log.Infoln("Register:")
+		err := as.UserRegister(username, password, email, phone)
+		message(err, "[success]:OK! register successfully!")
 	},
 }
 
