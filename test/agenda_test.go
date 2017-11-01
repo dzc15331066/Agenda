@@ -274,7 +274,7 @@ func TestAddParticipator(t *testing.T) {
 	}
 }
 
-func TesDelParticipartors(t *testing.T) {
+func TestDelParticipartors(t *testing.T) {
 	as := entity.NewAgendaService()
 	err := as.UserLogin("Username", "pass")
 	if err != nil {

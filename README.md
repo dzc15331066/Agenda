@@ -169,8 +169,10 @@ here is the testing results
 --- PASS: TestExitFromMeeting (0.00s)
 === RUN   TestAddParticipator
 --- PASS: TestAddParticipator (0.00s)
+=== RUN   TestDelParticipartors
+--- PASS: TestDelParticipartors (0.00s)
 PASS
-ok  	github.com/dzc15331066/Agenda/test	0.008s
+ok  	github.com/dzc15331066/Agenda/test	0.007s
 ```
 
 
