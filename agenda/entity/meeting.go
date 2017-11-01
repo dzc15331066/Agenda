@@ -43,5 +43,5 @@ func DateToString(date time.Time) string {
 
 // check whether meeting conflicts the dates.
 func (meeting *Meeting) OverLap(start time.Time, end time.Time) bool {
-	return meeting.Start.Before(start) && start.Before(meeting.End) || start.Before(meeting.Start) && meeting.Start.Before(end) || start.Before(meeting.Start) && end.After(meeting.End) || meeting.Start.Before(start) && meeting.End.After(end)
+	return ((meeting.Start.Before(start) || meeting.Start.Equal(start)) && (start.Before(meeting.End) || start.Equal(meeting.End))) || ((start.Before(meeting.Start) || start.Equal(meeting.Start)) && (meeting.Start.Before(end) || meeting.Start.Before(end))) || ((start.Before(meeting.Start) || start.Equal(meeting.Start)) && (end.After(meeting.End) || end.Equal(meeting.End))) || ((meeting.Start.Before(start) || meeting.Start.Equal(start)) && (meeting.End.Equal(end) || meeting.End.After(end)))
 }

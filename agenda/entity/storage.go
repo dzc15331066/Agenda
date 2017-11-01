@@ -219,7 +219,7 @@ func (s *storage) eraseCurUser() error {
 	if err != nil {
 		return err
 	}
-
+	s.CurUser = User{}
 	return file.Truncate(0)
 }
 

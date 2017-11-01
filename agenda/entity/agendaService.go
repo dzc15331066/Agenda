@@ -102,6 +102,7 @@ func (as *AgendaService) DeleteUser(username string, password string) error {
 				return err
 			}
 		}
+		as.DeleteAllMeetings()
 		return as.AgendaStorage.writeUsers()
 	}
 	return nil

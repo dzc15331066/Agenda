@@ -2,5 +2,6 @@
 *~
 *#
 # data file:
-agenda/*.txt
-agenda/*.json
+*.txt
+*.json
+
