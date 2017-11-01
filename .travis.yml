@@ -1,0 +1,2 @@
+go:
+  - tip # The latest version of Go.
