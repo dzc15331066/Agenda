@@ -23,14 +23,104 @@ Under the help of Cobra, wen can easily parse the commands and create subCommand
 * Use ``Flags`` to parse commands
 
 ### designing of Agenda
-  we use Architecture of MVC, achieves the separetion among view layer, logical controll layer and data layer. 
+  we use Architecture of`` MVC``, achieves the separetion among ``view`` layer, ``logical controll`` layer and ``data layer``. 
+  
+    Agenda/cmd/
+  
+    addPart.go
+    clear.go	
+    cm.go	
+    delPart.go	
+    delUser.go	
+    dm.go	
+    em.go	
+    login.go	
+    logout.go
+    qm.go	
+    query.go	
+    register.go	
+    root.go
+    
+ Above are regared as the view layer, which focus on receiving and handling user commands. for each commands, it calls related methods
+of AgendaService to interate with data layer. for example, the command of ``login``,which just need to call APIs from AgendaService.
+```
+var loginCmd = &cobra.Command{
+  Use:   "login",
+  Short: "A brief description of your command",
+  Long: `A longer description that spans multiple lines and likely contains examples
+ and usage of using your command. For example:
+ Cobra is a CLI library for Go that empowers applications.
+ This application is a tool to generate the needed files
+ to quickly create a Cobra application.`,
+ 
+	Run: func(cmd *cobra.Command, args []string) {
+		log.Infoln("Login:")
+		username, _ := cmd.Flags().GetString("user")
+		password, _ := cmd.Flags().GetString("password")
+		err := as.UserLogin(username, password)
+		message(err, "[success]: login successfully!")
+	},
+}
+```
+we regard agendaservice and storage as entities too, and put them together with User and Meeting under the directory of entity.
 
+```
+    Agenda/entity/
+    
+    agendaService.go	
+    meeting.go	
+    storage.go	
+    user.go
+    
+ ```
+ The AgendaService.go contains all the APIs for commands to interate with data layer, for example, ``login`` for user, which just provides API for commands to operate data but never do any operation directly with data.
+ 
+ ```
+  func (as *AgendaService) UserLogin(username string, password string) error {
+    if username == "" || password == "" {
+     return nullAgumentError
+    }
+    if err := as.AgendaStorage.readUsers(); err != nil {
+     return err
+    }
+    res := as.AgendaStorage.QueryUser(func(user User) bool {
+     return username == user.Name && password == user.Password
+    })
+
+    if len(res) > 0 {
+     return as.AgendaStorage.setCurUser(res[0])
+
+    }
+    return errors.New("[error]: Invalid username or password")
+  }
+ ```
+ Ok, the operation will effects once the data in file is modified. we use setCurUser method to record the current user once the user login and write the record out to curUser.txt file as the state of login, which provides help for next command.
+ 
+ ```
+ func (s *storage) setCurUser(user User) error {
+   s.CurUser = user
+   return s.writeCurUser()
+ }
+ 
+ func writeToFile(datalist interface{}, filename string) error {
+   data, err := json.Marshal(datalist)
+   if err != nil {
+    return err
+   }
+   return ioutil.WriteFile(filename, data, 0666)
+ }
+
+ ```
+ 
 # Testing
 
 # Installing
+Using Agenda is easy.First, use ``git clone`` to install the project
 
+    git clone https://github.com/dzc15331066/Agenda
+    
 # Getting Started
-
+ 
 
 
 [git协同开发参考](https://github.com/livoras/blog/issues/7)
