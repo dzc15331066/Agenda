@@ -1,7 +1,7 @@
 package test
 
 import (
-	"github.com/Agenda/entity"
+	"github.com/dzc15331066/Agenda/entity"
 	"io/ioutil"
 	"testing"
 )
