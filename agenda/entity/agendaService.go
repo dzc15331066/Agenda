@@ -21,7 +21,9 @@ func NewAgendaService() *AgendaService {
 // agenda login
 // check if the username match password.
 func (as *AgendaService) UserLogin(username string, password string) error {
-
+	if username == "" || password == "" {
+		return nullAgumentError
+	}
 	if err := as.AgendaStorage.readUsers(); err != nil {
 		return err
 	}
@@ -52,7 +54,9 @@ func (as *AgendaService) UserLogout() error {
 // agenda register
 // regist a user.
 func (as *AgendaService) UserRegister(username string, password string, email string, phone string) error {
-
+	if username == "" || password == "" || phone == "" || email == "" {
+		return nullAgumentError
+	}
 	if err := as.AgendaStorage.readUsers(); err != nil {
 		return err
 	}
@@ -72,6 +76,9 @@ func (as *AgendaService) UserRegister(username string, password string, email st
 // agenda delUser
 // delete a user.
 func (as *AgendaService) DeleteUser(username string, password string) error {
+	if username == "" || password == "" {
+		return nullAgumentError
+	}
 	var ret int
 
 	if err := as.AgendaStorage.readUsers(); err != nil {

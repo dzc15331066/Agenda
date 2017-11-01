@@ -5,6 +5,11 @@ import (
 	"testing"
 )
 
-func TestAgendaService(t *testing.T) {
-	as := entity
+func TestUserRegister(t *testing.T) {
+	as := entity.NewAgendaService()
+	name := "Username"
+	pass := "pass"
+	email := "1235@qq.com"
+	phone := "1315766578"
+	t.Log(as.UserRegister(name, pass, email, phone))
 }
