@@ -3,75 +3,75 @@
 ### 列出命令说明
 
 ```
-agenda help
-agenda help [command]
+Agenda help
+Agenda help [command]
 ```
 
 ### 用户注册
 
 ```
-agenda register -uUserName --password pass --email=a@xxx.com --phone=123456
+Agenda register -uUserName -p pass --email=a@xxx.com --contact=123456
 ```
 
 ### 用户登录
 
 ```
-agenda login -uUserName --password pass
+Agenda login -uUserName --password pass
 ```
 
 ### 用户登出
 
 ```
-agenda logout
+Agenda logout
 ```
 
 ### 用户查询
 
 ```
-agenda query
+Agenda query
 ```
 
 ### 用户删除
 
 ```
-agenda delUser
+Agenda delUser
 ```
 
 ### 创建会议
 
 ```
-agenda cm --title=meeting --part=participator --start=start_time --end=end_time
+Agenda cm --title=meeting --part=participator --start=start_time --end=end_time
 ```
 
 ### 增删会议参与者
 
 ```
-agenda addPart --title=meeting --part=participator
-agenda delPart --title=meeting --part=participator
+Agenda addPart --title=meeting --part=participator
+Agenda delPart --title=meeting --part=participator
 ```
 
 ### 查询会议
 
 ```
-agenda qm --start=start_time  --end=end_time
+Agenda qm --start=start_time  --end=end_time
 ```
 
 ### 取消会议
 
 ```
-agenda dm --title=meeting
+Agenda dm --title=meeting
 ```
 
 ### 退出会议
 
 ```
-agenda em --title=meeting
+Agenda em --title=meeting
 ```
 
 ### 清空会议
 
 ```
-agenda clear
+Agenda clear
 ```
 
 

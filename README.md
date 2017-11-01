@@ -132,15 +132,56 @@ we regard agendaservice and storage as entities too, and put them together with 
 
 # Testing
 
-In this module, we've finished testing work for each APIs of AgendaService and now we can conclude that everything works well. Of course, we use the golang pakeage of ``testing ``, which helps a lot in ``unit test``. some of our testing results are showed as follow:
+In this module, we've finished testing work for each APIs of AgendaService and now we can conclude that everything works well. Of course, we use the golang pakeage of ``testing ``, which helps a lot in ``unit test``.
+
+To test our code, you can
+
+```
+git clone https://github.com/dzc15331066/Agenda
+cd Agenda/test
+go test -v
+```
+
+
 
 here is the testing results
+
+```
+=== RUN   TestUserRegister
+--- PASS: TestUserRegister (0.00s)
+=== RUN   TestUserLogin
+--- PASS: TestUserLogin (0.00s)
+=== RUN   TestUserLogout
+--- PASS: TestUserLogout (0.00s)
+=== RUN   TestListAllUsers
+--- PASS: TestListAllUsers (0.00s)
+=== RUN   TestDeleteUser
+--- PASS: TestDeleteUser (0.00s)
+=== RUN   TestAddMeeting
+--- PASS: TestAddMeeting (0.00s)
+=== RUN   TestQueryMeeting
+--- PASS: TestQueryMeeting (0.00s)
+=== RUN   TestDeleteMeeting
+--- PASS: TestDeleteMeeting (0.00s)
+=== RUN   TestDeleteAllMeetings
+--- PASS: TestDeleteAllMeetings (0.00s)
+=== RUN   TestExitFromMeeting
+--- PASS: TestExitFromMeeting (0.00s)
+=== RUN   TestAddParticipator
+--- PASS: TestAddParticipator (0.00s)
+PASS
+ok  	github.com/dzc15331066/Agenda/test	0.008s
+```
+
+
 
 
 # Installing
 Using Agenda is easy.First, use ``git clone`` to install the project
 
     git clone https://github.com/dzc15331066/Agenda
+    cd Agenda
+    go buid
 
 # Getting Started
  While you are welcome to provide your own organization, typically our Agenda apllication shows the following organizaion structure.
@@ -170,7 +211,7 @@ Using Agenda is easy.First, use ``git clone`` to install the project
 	--test.sh
  ```
 
-To start ``Agenda``, you should enter the directory ``Agenda/``, and run the command ``go build``, and then you can use Agenda commands as this format ``Agenda [Command] [subCommand]...``, more details can be get once you enter ``./agenda -h``, enjoy yourself!
+To start ``Agenda``, you should enter the directory ``Agenda/``, and run the command ``go build``, and then you can use Agenda commands as this format ``Agenda [Command] [subCommand]...``, more details can be get once you enter ``./Agenda -h``, enjoy yourself!
 
 
 
