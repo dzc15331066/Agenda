@@ -1,3 +1,9 @@
 language:	go
+
+
 go:
   - tip # The latest version of Go.
+
+install:	go get ./..
+script: cd ./test ; ./test.sh
+
