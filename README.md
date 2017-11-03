@@ -1,5 +1,6 @@
 # Agenda
-![Build Status](https://travis-ci.org/dzc15331066/Agenda.svg?branch=master)
+[![Build Status](https://travis-ci.org/dzc15331066/Agenda.svg?branch=master "Travis CI status")](https://travis-ci.org/dzc15331066/Agenda)
+
 # Introduction
 ``Agenda`` is a simple meeting manegement system developed with`` Golang`` and it's a powerful modern CLI application as well. As a wonderful simple project to practise coding in Golang, Agenda offers many functions including regsitering an user, logging into system, logout from systen, creating a meeting with meeting's title, meeting's participators, and meeting's starting time and ending time, besides, you can add or delete participartors in some meeting. Of course, Agenda supports querying some user or meetings, and other funstions wait for your exploration.
 
